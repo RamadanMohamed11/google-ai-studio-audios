@@ -2,6 +2,14 @@ import json,math,os,random,re,subprocess
 from pathlib import Path
 from PIL import Image,ImageDraw,ImageFont
 from faster_whisper import WhisperModel
+# PyAV 19 removed 'metadata_errors'; faster-whisper 1.2.x still passes it.
+# Keep the newest decoder compatible without suppressing any other arguments.
+import av
+_av_open = av.open
+def _compatible_av_open(*args, **kwargs):
+ kwargs.pop('metadata_errors', None)
+ return _av_open(*args, **kwargs)
+av.open = _compatible_av_open
 A=Path('black-box-charon-voiceover.wav')
 O=Path('output/charon-short');O.mkdir(parents=True,exist_ok=True)
 def run(*args):
@@ -33,6 +41,7 @@ for i,(a,b) in enumerate(zip(cuts,cuts[1:])):
 (O/'storyboard.json').write_text(json.dumps(beats,ensure_ascii=False,indent=2),encoding='utf-8')
 font='/usr/share/fonts/truetype/noto/NotoSansArabic-Bold.ttf'
 latin='/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+print('Audio seconds:',round(D,2),'Transcript words:',len(words),'Scenes:',len(beats),flush=True)
 f=ImageFont.truetype(font,37);small=ImageFont.truetype(font,25);en=ImageFont.truetype(latin,16)
 def theme(t):
  if any(x in t for x in ('شارون','بلوتو','كوكب','فضا','الشمس','قمر','المجرة')):return 'orbital'
