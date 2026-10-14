@@ -1,0 +1,30 @@
+name: Render Min Awwalha Short
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'black-box-charon-voiceover.wav'
+      - 'automation/shorts/**'
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install free rendering tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-noto-core fonts-dejavu-core
+          python -m pip install --upgrade pip
+          pip install -r automation/shorts/requirements.txt
+      - name: Render audio-synced short
+        run: python automation/shorts/render.py
+      - name: Upload verified output
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: min-awwalha-charon-short
+          path: output/charon-short/
+          retention-days: 30
